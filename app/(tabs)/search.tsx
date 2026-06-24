@@ -21,6 +21,7 @@ import { spacing, radius, typography } from '../../src/theme/tokens';
 import { getAllNotes } from '../../src/lib/database';
 import type { Note } from '../../src/stores/notes-store';
 import { NoteCard } from '../../src/components/NoteCard';
+import { playSound } from '../../src/lib/sound-manager';
 
 export default function SearchScreen() {
   const { theme, isDark } = useTheme();
@@ -139,7 +140,10 @@ export default function SearchScreen() {
             note={item}
             isSelected={false}
             isSelectionMode={false}
-            onPress={() => router.push(`/note/${item.id}`)}
+            onPress={() => {
+              playSound('click');
+              router.push(`/note/${item.id}`);
+            }}
             onLongPress={() => {}}
           />
         )}

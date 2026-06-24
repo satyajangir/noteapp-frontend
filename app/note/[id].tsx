@@ -27,6 +27,7 @@ import { useNotesStore } from '../../src/stores/notes-store';
 import { useAuthStore } from '../../src/stores/auth-store';
 import { NoteColorPicker } from '../../src/components/NoteColorPicker';
 import { useAlert } from '../../src/components/AlertProvider';
+import { playSound } from '../../src/lib/sound-manager';
 import {
   getNoteById,
   updateNoteField,
@@ -72,6 +73,7 @@ export default function NoteEditorScreen() {
       ) {
         // Automatically move note to trash if it is left empty (both title and content clear)
         const now = new Date().toISOString();
+        playSound('delete');
         updateNoteField(id, 'deleted_at', now).catch(e => console.error('Failed to auto-delete note:', e));
         useNotesStore.getState().removeNote(id);
       }
@@ -171,11 +173,16 @@ export default function NoteEditorScreen() {
 
   const handleTitleChange = (text: string) => { setTitle(text); autoSave('title', text); };
   const handleContentChange = (text: string) => { setContent(text); autoSave('content_preview', text); };
-  const handleColorChange = (newColor: string) => { setColor(newColor); autoSave('color', newColor); };
+  const handleColorChange = (newColor: string) => {
+    setColor(newColor);
+    autoSave('color', newColor);
+    playSound('tap');
+  };
   const togglePin = () => {
     const next = !isPinned;
     setIsPinned(next);
     autoSave('is_pinned', next ? 1 : 0);
+    playSound('tap');
   };
 
   const handleArchive = () => {
@@ -185,6 +192,7 @@ export default function NoteEditorScreen() {
         text: 'Archive',
         onPress: () => {
           skipAutoDeleteRef.current = true;
+          playSound('archive');
           autoSave('is_archived', 1);
           router.back();
         },
@@ -196,6 +204,7 @@ export default function NoteEditorScreen() {
     const doDelete = async () => {
       if (!id) return;
       skipAutoDeleteRef.current = true;
+      playSound('delete');
       if (!silent && Platform.OS === 'ios') await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       await updateNoteField(id, 'deleted_at', new Date().toISOString());
       useNotesStore.getState().removeNote(id);
@@ -209,10 +218,12 @@ export default function NoteEditorScreen() {
   };
 
   const handleBack = () => {
+    playSound('click');
     router.back();
   };
 
   const openNoteOptions = () => {
+    playSound('click');
     showActionSheet('Note Options', undefined, [
       { text: isPinned ? 'Unpin Note' : 'Pin Note', onPress: togglePin },
       { text: 'Archive Note', onPress: handleArchive },

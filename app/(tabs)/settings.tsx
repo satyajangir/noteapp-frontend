@@ -21,6 +21,7 @@ import { spacing, radius, typography, shadows } from '../../src/theme/tokens';
 import { useAuthStore } from '../../src/stores/auth-store';
 import { AnimatedPressable } from '../../src/components/AnimatedPressable';
 import { useAlert } from '../../src/components/AlertProvider';
+import { playSound } from '../../src/lib/sound-manager';
 
 export default function SettingsScreen() {
   const { theme, themeMode, setThemeMode, isDark } = useTheme();
@@ -32,12 +33,16 @@ export default function SettingsScreen() {
   );
 
   const handleLogout = () => {
+    playSound('click');
     showAlert('Logout', 'Are you sure you want to logout?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Logout',
         style: 'destructive',
-        onPress: () => clearAuth(),
+        onPress: () => {
+          playSound('success');
+          clearAuth();
+        },
       },
     ]);
   };
@@ -145,6 +150,7 @@ export default function SettingsScreen() {
           <Switch
             value={autoBackup}
             onValueChange={(val) => {
+              playSound('tap');
               setAutoBackup(val);
               if (Platform.OS === 'ios') {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -166,13 +172,13 @@ export default function SettingsScreen() {
             ? `Last backup: ${new Date(user.lastBackupAt).toLocaleDateString()}`
             : 'No backups yet'
         }
-        onPress={() => showAlert('Backup', 'Starting backup...')}
+        onPress={() => { playSound('click'); showAlert('Backup', 'Starting backup...'); }}
       />
       <SettingRow
         icon="download-outline"
         title="Restore from Backup"
         subtitle="Restore notes from a previous backup"
-        onPress={() => showAlert('Restore', 'Loading backups...')}
+        onPress={() => { playSound('click'); showAlert('Restore', 'Loading backups...'); }}
       />
 
       {/* Data Management */}
@@ -181,13 +187,13 @@ export default function SettingsScreen() {
         icon="archive-outline"
         title="Archive"
         subtitle="View and restore archived notes"
-        onPress={() => router.push('/archive')}
+        onPress={() => { playSound('click'); router.push('/archive'); }}
       />
       <SettingRow
         icon="trash-bin-outline"
         title="Trash"
         subtitle="View and restore deleted notes"
-        onPress={() => router.push('/trash')}
+        onPress={() => { playSound('click'); router.push('/trash'); }}
       />
 
       {/* Appearance */}
@@ -197,6 +203,7 @@ export default function SettingsScreen() {
         title="Theme"
         value={themeMode === 'system' ? 'System' : themeMode === 'dark' ? 'Dark' : 'Light'}
         onPress={() => {
+          playSound('tap');
           const modes: Array<'system' | 'light' | 'dark'> = ['system', 'light', 'dark'];
           const current = modes.indexOf(themeMode as any);
           const next = modes[(current + 1) % modes.length];

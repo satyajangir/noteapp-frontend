@@ -96,7 +96,8 @@
       "expo-av",
       "expo-local-authentication",
       "expo-notifications",
-      "expo-dev-client"
+      "expo-dev-client",
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true

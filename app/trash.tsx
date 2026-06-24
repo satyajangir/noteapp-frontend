@@ -27,6 +27,7 @@ import { getAllNotes, hardDeleteNote, restoreNote } from '../src/lib/database';
 import { NoteCard } from '../src/components/NoteCard';
 import { EmptyState } from '../src/components/EmptyState';
 import { useAlert } from '../src/components/AlertProvider';
+import { playSound } from '../src/lib/sound-manager';
 
 const SPRING_SNAPPY = { damping: 22, stiffness: 300, useNativeDriver: true };
 
@@ -110,13 +111,22 @@ export default function TrashScreen() {
     if (next.has(id)) next.delete(id);
     else next.add(id);
     setSelectedNoteIds(next);
+    playSound('tap');
   };
 
-  const clearSelection = () => setSelectedNoteIds(new Set());
+  const clearSelection = () => {
+    setSelectedNoteIds(new Set());
+    playSound('click');
+  };
 
   const selectAll = () => {
-    if (allSelected) clearSelection();
-    else setSelectedNoteIds(new Set(deletedNotes.map((n) => n.id)));
+    if (allSelected) {
+      setSelectedNoteIds(new Set());
+      playSound('click');
+    } else {
+      setSelectedNoteIds(new Set(deletedNotes.map((n) => n.id)));
+      playSound('success');
+    }
     if (Platform.OS === 'ios') Haptics.selectionAsync();
   };
 
@@ -124,10 +134,11 @@ export default function TrashScreen() {
 
   const handleRestoreSelected = async () => {
     if (Platform.OS === 'ios') await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    playSound('success');
     for (const id of Array.from(selectedNoteIds)) {
       await restoreNote(id);
     }
-    clearSelection();
+    setSelectedNoteIds(new Set());
     loadDeletedNotes();
   };
 
@@ -142,10 +153,11 @@ export default function TrashScreen() {
           style: 'destructive',
           onPress: async () => {
             if (Platform.OS === 'ios') await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            playSound('delete');
             for (const id of Array.from(selectedNoteIds)) {
               await hardDeleteNote(id);
             }
-            clearSelection();
+            setSelectedNoteIds(new Set());
             loadDeletedNotes();
           },
         },
@@ -165,10 +177,11 @@ export default function TrashScreen() {
           style: 'destructive',
           onPress: async () => {
             if (Platform.OS === 'ios') await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            playSound('delete');
             for (const note of deletedNotes) {
               await hardDeleteNote(note.id);
             }
-            clearSelection();
+            setSelectedNoteIds(new Set());
             loadDeletedNotes();
           },
         },
@@ -202,7 +215,7 @@ export default function TrashScreen() {
           tint={isDark ? 'dark' : 'light'}
           style={[styles.barInner, { paddingTop: insets.top, borderBottomColor: theme.colors.border }]}
         >
-          <Pressable style={styles.backBtn} onPress={() => router.back()} hitSlop={8}>
+          <Pressable style={styles.backBtn} onPress={() => { playSound('click'); router.back(); }} hitSlop={8}>
             <Ionicons name="chevron-back" size={26} color={theme.colors.primary} />
           </Pressable>
 

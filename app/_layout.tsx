@@ -15,6 +15,7 @@ import { StyleSheet } from 'react-native';
 import { ThemeProvider, useTheme } from '../src/theme/ThemeProvider';
 import { useAuthStore } from '../src/stores/auth-store';
 import { AlertProvider } from '../src/components/AlertProvider';
+import { preloadSounds } from '../src/lib/sound-manager';
 
 // Keep splash screen visible while loading
 SplashScreen.preventAutoHideAsync();
@@ -35,8 +36,11 @@ function RootNavigator() {
   const segments = useSegments();
 
   useEffect(() => {
-    // Load stored auth on app start
-    loadStoredAuth().finally(() => {
+    // Load stored auth and preload sound effects on app start
+    Promise.all([
+      loadStoredAuth(),
+      preloadSounds(),
+    ]).finally(() => {
       SplashScreen.hideAsync();
     });
   }, []);

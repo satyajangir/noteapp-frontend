@@ -39,6 +39,7 @@ import { getAllNotes, updateNoteField } from '../../src/lib/database';
 import { NoteCard } from '../../src/components/NoteCard';
 import { EmptyState } from '../../src/components/EmptyState';
 import { useAlert } from '../../src/components/AlertProvider';
+import { playSound } from '../../src/lib/sound-manager';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const COLUMN_GAP = spacing.sm;
@@ -184,20 +185,27 @@ export default function NotesScreen() {
     }
   );
 
-  // ── Selection helpers ─────────────────────────────────────────────
-
   const toggleSelection = (id: string) => {
     const next = new Set(selectedNoteIds);
     if (next.has(id)) next.delete(id);
     else next.add(id);
     setSelectedNoteIds(next);
+    playSound('tap');
   };
 
-  const clearSelection = () => setSelectedNoteIds(new Set());
+  const clearSelection = () => {
+    setSelectedNoteIds(new Set());
+    playSound('click');
+  };
 
   const selectAll = () => {
-    if (allSelected) clearSelection();
-    else setSelectedNoteIds(new Set(notes.map((n) => n.id)));
+    if (allSelected) {
+      setSelectedNoteIds(new Set());
+      playSound('click');
+    } else {
+      setSelectedNoteIds(new Set(notes.map((n) => n.id)));
+      playSound('success');
+    }
     if (Platform.OS === 'ios') Haptics.selectionAsync();
   };
 
@@ -214,11 +222,12 @@ export default function NotesScreen() {
           style: 'destructive',
           onPress: async () => {
             if (Platform.OS === 'ios') await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            playSound('delete');
             for (const id of Array.from(selectedNoteIds)) {
               await updateNoteField(id, 'deleted_at', new Date().toISOString());
               removeNote(id);
             }
-            clearSelection();
+            setSelectedNoteIds(new Set());
           },
         },
       ]
@@ -227,17 +236,19 @@ export default function NotesScreen() {
 
   const archiveSelected = async () => {
     if (Platform.OS === 'ios') await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    playSound('archive');
     for (const id of Array.from(selectedNoteIds)) {
       await updateNoteField(id, 'is_archived', 1);
       removeNote(id);
     }
-    clearSelection();
+    setSelectedNoteIds(new Set());
   };
 
   // ── Create note ───────────────────────────────────────────────────
 
   const createNote = async () => {
     if (Platform.OS === 'ios') await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    playSound('click');
     router.push(`/note/${uuidv4()}`);
   };
 
@@ -252,7 +263,10 @@ export default function NotesScreen() {
 
   const noteOnPress = (id: string) => {
     if (isSelectionMode) toggleSelection(id);
-    else router.push(`/note/${id}`);
+    else {
+      playSound('click');
+      router.push(`/note/${id}`);
+    }
   };
 
   const renderCard = (note: Note) => (
@@ -511,6 +525,7 @@ export default function NotesScreen() {
               ]}
               onPress={() => {
                 setViewMode(mode);
+                playSound('tap');
                 if (Platform.OS === 'ios') Haptics.selectionAsync();
                 closeMenu();
               }}
@@ -539,7 +554,7 @@ export default function NotesScreen() {
               styles.menuItem,
               { backgroundColor: pressed ? (isDark ? '#FFFFFF10' : '#00000008') : 'transparent' },
             ]}
-            onPress={() => { closeMenu(); setTimeout(() => router.push('/archive'), 180); }}
+            onPress={() => { playSound('click'); closeMenu(); setTimeout(() => router.push('/archive'), 180); }}
           >
             <View style={[styles.menuItemIcon, { backgroundColor: theme.colors.textTertiary + '20' }]}>
               <Ionicons name="archive-outline" size={17} color={theme.colors.textSecondary} />
@@ -554,7 +569,7 @@ export default function NotesScreen() {
               styles.menuItem,
               { backgroundColor: pressed ? (isDark ? '#FFFFFF10' : '#00000008') : 'transparent' },
             ]}
-            onPress={() => { closeMenu(); setTimeout(() => router.push('/(tabs)/settings'), 180); }}
+            onPress={() => { playSound('click'); closeMenu(); setTimeout(() => router.push('/(tabs)/settings'), 180); }}
           >
             <View style={[styles.menuItemIcon, { backgroundColor: theme.colors.textTertiary + '20' }]}>
               <Ionicons name="settings-outline" size={17} color={theme.colors.textSecondary} />

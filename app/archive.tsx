@@ -27,6 +27,7 @@ import { getAllNotes, updateNoteField } from '../src/lib/database';
 import { NoteCard } from '../src/components/NoteCard';
 import { EmptyState } from '../src/components/EmptyState';
 import { useAlert } from '../src/components/AlertProvider';
+import { playSound } from '../src/lib/sound-manager';
 
 // Spring presets (same as home screen for consistency)
 const SPRING_SNAPPY = { damping: 22, stiffness: 300, useNativeDriver: true };
@@ -126,13 +127,22 @@ export default function ArchiveScreen() {
     if (next.has(id)) next.delete(id);
     else next.add(id);
     setSelectedNoteIds(next);
+    playSound('tap');
   };
 
-  const clearSelection = () => setSelectedNoteIds(new Set());
+  const clearSelection = () => {
+    setSelectedNoteIds(new Set());
+    playSound('click');
+  };
 
   const selectAll = () => {
-    if (allSelected) clearSelection();
-    else setSelectedNoteIds(new Set(archivedNotes.map((n) => n.id)));
+    if (allSelected) {
+      setSelectedNoteIds(new Set());
+      playSound('click');
+    } else {
+      setSelectedNoteIds(new Set(archivedNotes.map((n) => n.id)));
+      playSound('success');
+    }
     if (Platform.OS === 'ios') Haptics.selectionAsync();
   };
 
@@ -140,10 +150,11 @@ export default function ArchiveScreen() {
 
   const handleRestoreSelected = async () => {
     if (Platform.OS === 'ios') await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    playSound('success');
     for (const id of Array.from(selectedNoteIds)) {
       await updateNoteField(id, 'is_archived', 0);
     }
-    clearSelection();
+    setSelectedNoteIds(new Set());
     loadArchivedNotes();
   };
 
@@ -158,10 +169,11 @@ export default function ArchiveScreen() {
           style: 'destructive',
           onPress: async () => {
             if (Platform.OS === 'ios') await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            playSound('delete');
             for (const id of Array.from(selectedNoteIds)) {
               await updateNoteField(id, 'deleted_at', new Date().toISOString());
             }
-            clearSelection();
+            setSelectedNoteIds(new Set());
             loadArchivedNotes();
           },
         },
@@ -180,6 +192,7 @@ export default function ArchiveScreen() {
           text: 'Restore All',
           onPress: async () => {
             if (Platform.OS === 'ios') await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            playSound('success');
             for (const note of archivedNotes) {
               await updateNoteField(note.id, 'is_archived', 0);
             }
@@ -218,7 +231,7 @@ export default function ArchiveScreen() {
           style={[styles.barInner, { paddingTop: insets.top, borderBottomColor: theme.colors.border }]}
         >
           {/* Back button */}
-          <Pressable style={styles.backBtn} onPress={() => router.back()} hitSlop={8}>
+          <Pressable style={styles.backBtn} onPress={() => { playSound('click'); router.back(); }} hitSlop={8}>
             <Ionicons name="chevron-back" size={26} color={theme.colors.primary} />
           </Pressable>
 
@@ -334,7 +347,10 @@ export default function ArchiveScreen() {
               isSelectionMode={isSelectionMode}
               onPress={() => {
                 if (isSelectionMode) toggleSelection(item.id);
-                else router.push(`/note/${item.id}`);
+                else {
+                  playSound('click');
+                  router.push(`/note/${item.id}`);
+                }
               }}
               onLongPress={() => toggleSelection(item.id)}
             />
