@@ -10,7 +10,7 @@ import * as Haptics from 'expo-haptics';
 import { Platform } from 'react-native';
 
 import { useTheme } from '../theme/ThemeProvider';
-import { spacing, radius, typography } from '../theme/tokens';
+import { spacing, radius, typography, getNoteTheme } from '../theme/tokens';
 import type { Note } from '../stores/notes-store';
 
 interface NoteCardProps {
@@ -38,18 +38,6 @@ function formatRelativeDate(dateStr: string | undefined | null): string {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-// Accent colors for note backgrounds
-const COLOR_ACCENTS: Record<string, { light: string; dark: string; text: string }> = {
-  '#FAECEC': { light: '#E53E3E', dark: '#FC8181', text: '#742A2A' },
-  '#FFF0E6': { light: '#DD6B20', dark: '#F6AD55', text: '#7B341E' },
-  '#FFF8E1': { light: '#D69E2E', dark: '#F6E05E', text: '#744210' },
-  '#E8F5E9': { light: '#38A169', dark: '#68D391', text: '#22543D' },
-  '#E8EAF6': { light: '#5C6BC0', dark: '#7F9CF5', text: '#2C4D9E' },
-  '#EDE7F6': { light: '#805AD5', dark: '#B794F4', text: '#553C9A' },
-  '#F3E5F5': { light: '#B83280', dark: '#F687B3', text: '#702459' },
-  '#E0F7FA': { light: '#00838F', dark: '#76E4F7', text: '#065666' },
-};
-
 export function NoteCard({ note, isSelected, isSelectionMode, onPress, onLongPress }: NoteCardProps) {
   const { theme, isDark } = useTheme();
 
@@ -71,16 +59,18 @@ export function NoteCard({ note, isSelected, isSelectionMode, onPress, onLongPre
     }).start();
   }, [isSelected]);
 
-  const isColored = note.color && note.color !== '#FFFFFF' && note.color !== 'transparent';
-  const accent = isColored ? COLOR_ACCENTS[note.color!] : null;
-  const accentDot = accent ? (isDark ? accent.dark : accent.light) : theme.colors.primary;
+  const noteTheme = getNoteTheme(note.color, isDark, theme);
 
-  const cardBg = isColored ? note.color! : theme.colors.card;
-  const titleColor = theme.colors.text;
-  const previewColor = theme.colors.textSecondary;
-  const metaColor = theme.colors.textTertiary;
-  const borderColor = isSelected ? theme.colors.primary : (isColored ? 'transparent' : theme.colors.cardBorder);
-  const borderWidth = isSelected ? 2 : StyleSheet.hairlineWidth;
+  const cardBg = noteTheme.background;
+  const titleColor = noteTheme.text;
+  const previewColor = noteTheme.textSecondary;
+  const metaColor = noteTheme.textTertiary;
+  const accentDot = noteTheme.accent;
+
+  const borderColor = isSelected
+    ? theme.colors.primary
+    : (noteTheme.isColored ? noteTheme.border : theme.colors.cardBorder);
+  const borderWidth = isSelected ? 2 : 1.2;
 
   const handlePressIn = () => {
     Animated.spring(scale, { toValue: 0.97, useNativeDriver: true, speed: 30, bounciness: 0 }).start();
@@ -108,6 +98,11 @@ export function NoteCard({ note, isSelected, isSelectionMode, onPress, onLongPre
       onPress={handlePress}
       onLongPress={handleLongPress}
       delayLongPress={350}
+      accessibilityLabel={`${note.isPinned ? 'Pinned note, ' : ''}${note.title || 'Untitled'}, ${
+        note.contentPreview || 'no content preview'
+      }`}
+      accessibilityRole="button"
+      accessibilityState={{ selected: isSelected }}
     >
       <Animated.View
         style={[
@@ -126,12 +121,12 @@ export function NoteCard({ note, isSelected, isSelectionMode, onPress, onLongPre
         ]}
       >
         {/* Colored accent bar on the left */}
-        {isColored && (
+        {noteTheme.isColored && (
           <View style={[styles.accentBar, { backgroundColor: accentDot }]} />
         )}
 
         {/* Content */}
-        <View style={[styles.content, isColored && styles.contentWithAccent]}>
+        <View style={[styles.content, noteTheme.isColored && styles.contentWithAccent]}>
           {/* Title row */}
           <View style={styles.titleRow}>
             <Text
@@ -175,6 +170,8 @@ export function NoteCard({ note, isSelected, isSelectionMode, onPress, onLongPre
 
         {/* Selection checkbox */}
         <Animated.View
+          importantForAccessibility="no"
+          accessibilityElementsHidden={true}
           style={[
             styles.selectionBadge,
             {

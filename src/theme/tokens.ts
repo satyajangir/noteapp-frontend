@@ -346,3 +346,89 @@ export interface Theme {
 }
 export type ThemeColors = Theme['colors'];
 
+// ── Note Color Accents & Theme Resolvers ──────────────────────────────
+
+export const noteColorAccents: Record<string, { light: string; dark: string; textLight: string; textDark: string }> = {
+  'Coral': { light: '#E53E3E', dark: '#FC8181', textLight: '#742A2A', textDark: '#FEE2E2' },
+  'Peach': { light: '#DD6B20', dark: '#F6AD55', textLight: '#7B341E', textDark: '#FFEDD5' },
+  'Sand': { light: '#D69E2E', dark: '#F6E05E', textLight: '#744210', textDark: '#FEF3C7' },
+  'Sage': { light: '#38A169', dark: '#68D391', textLight: '#22543D', textDark: '#D1FAE5' },
+  'Fog': { light: '#5C6BC0', dark: '#7F9CF5', textLight: '#2C4D9E', textDark: '#E0E7FF' },
+  'Storm': { light: '#805AD5', dark: '#B794F4', textLight: '#553C9A', textDark: '#EDE7F6' },
+  'Dusk': { light: '#B83280', dark: '#F687B3', textLight: '#702459', textDark: '#FCE7F3' },
+  'Mist': { light: '#00838F', dark: '#76E4F7', textLight: '#065666', textDark: '#E0F7FA' },
+} as const;
+
+export interface NoteTheme {
+  background: string;
+  text: string;
+  textSecondary: string;
+  textTertiary: string;
+  border: string;
+  accent: string;
+  isColored: boolean;
+}
+
+/**
+ * Resolves a note's background, text, border, and accent colors dynamically.
+ * Provides accessible, high-contrast combinations in both light and dark themes.
+ */
+export function getNoteTheme(color: string | undefined | null, isDark: boolean, theme: Theme): NoteTheme {
+  const isDefaultColor = !color || color === 'transparent' || color === '#FFFFFF' || color === 'Default';
+
+  if (isDefaultColor) {
+    return {
+      background: theme.colors.background,
+      text: theme.colors.text,
+      textSecondary: theme.colors.textSecondary,
+      textTertiary: theme.colors.textTertiary,
+      border: theme.colors.border,
+      accent: theme.colors.primary,
+      isColored: false,
+    };
+  }
+
+  // Find match in tokens noteColors list
+  const matchedNoteColor = noteColors.find(
+    (c) =>
+      c.light.toLowerCase() === color.toLowerCase() ||
+      c.dark.toLowerCase() === color.toLowerCase() ||
+      c.name.toLowerCase() === color.toLowerCase()
+  );
+
+  if (!matchedNoteColor || matchedNoteColor.name === 'Default') {
+    return {
+      background: theme.colors.background,
+      text: theme.colors.text,
+      textSecondary: theme.colors.textSecondary,
+      textTertiary: theme.colors.textTertiary,
+      border: theme.colors.border,
+      accent: theme.colors.primary,
+      isColored: false,
+    };
+  }
+
+  const name = matchedNoteColor.name;
+  const accentInfo = noteColorAccents[name];
+
+  const background = isDark ? matchedNoteColor.dark : matchedNoteColor.light;
+  const text = isDark ? (accentInfo?.textDark || '#FFFFFF') : (accentInfo?.textLight || '#1A1A1A');
+  const accent = isDark ? (accentInfo?.dark || theme.colors.primary) : (accentInfo?.light || theme.colors.primary);
+
+  // Derive readable secondary, tertiary, and border colors from the main text color with opacity
+  const textSecondary = isDark ? `${text}CC` : `${text}B3`; // ~80% / 70% opacity
+  const textTertiary = isDark ? `${text}99` : `${text}80`;  // ~60% / 50% opacity
+  const border = isDark ? `${text}26` : `${text}1F`;        // ~15% / 12% opacity
+
+  return {
+    background,
+    text,
+    textSecondary,
+    textTertiary,
+    border,
+    accent,
+    isColored: true,
+  };
+}
+
+

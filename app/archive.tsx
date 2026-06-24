@@ -231,7 +231,13 @@ export default function ArchiveScreen() {
           style={[styles.barInner, { paddingTop: insets.top, borderBottomColor: theme.colors.border }]}
         >
           {/* Back button */}
-          <Pressable style={styles.backBtn} onPress={() => { playSound('click'); router.back(); }} hitSlop={8}>
+          <Pressable
+            style={styles.backBtn}
+            onPress={() => { playSound('click'); router.back(); }}
+            hitSlop={12}
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
+          >
             <Ionicons name="chevron-back" size={26} color={theme.colors.primary} />
           </Pressable>
 
@@ -242,6 +248,8 @@ export default function ArchiveScreen() {
             style={styles.navActionBtn}
             onPress={handleUnarchiveAll}
             disabled={archivedNotes.length === 0}
+            accessibilityLabel="Restore all archived notes"
+            accessibilityRole="button"
           >
             <Text
               style={[
@@ -275,12 +283,24 @@ export default function ArchiveScreen() {
           ]}
         >
           {/* Left — Cancel */}
-          <Pressable style={styles.actionBarSide} onPress={clearSelection} hitSlop={8}>
+          <Pressable
+            style={styles.actionBarSide}
+            onPress={clearSelection}
+            hitSlop={12}
+            accessibilityLabel="Cancel selection mode"
+            accessibilityRole="button"
+          >
             <Text style={[styles.actionBarCancel, { color: theme.colors.primary }]}>Cancel</Text>
           </Pressable>
 
           {/* Center — count + Select All toggle */}
-          <Pressable style={styles.actionBarCenter} onPress={selectAll} hitSlop={8}>
+          <Pressable
+            style={styles.actionBarCenter}
+            onPress={selectAll}
+            hitSlop={12}
+            accessibilityLabel={allSelected ? "Deselect all notes" : "Select all notes"}
+            accessibilityRole="button"
+          >
             <Text style={[styles.actionBarCount, { color: theme.colors.text }]}>
               {selectedNoteIds.size} selected
             </Text>
@@ -294,14 +314,18 @@ export default function ArchiveScreen() {
             <Pressable
               style={({ pressed }) => [styles.actionBarIconBtn, { opacity: pressed ? 0.6 : 1 }]}
               onPress={handleRestoreSelected}
-              hitSlop={8}
+              hitSlop={12}
+              accessibilityLabel="Unarchive selected notes"
+              accessibilityRole="button"
             >
               <Ionicons name="arrow-undo-outline" size={22} color={theme.colors.primary} />
             </Pressable>
             <Pressable
               style={({ pressed }) => [styles.actionBarIconBtn, { opacity: pressed ? 0.6 : 1 }]}
               onPress={handleDeleteSelected}
-              hitSlop={8}
+              hitSlop={12}
+              accessibilityLabel="Move selected notes to trash"
+              accessibilityRole="button"
             >
               <Ionicons name="trash-outline" size={22} color={theme.colors.error} />
             </Pressable>

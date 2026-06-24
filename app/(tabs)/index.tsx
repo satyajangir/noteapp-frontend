@@ -303,7 +303,13 @@ export default function NotesScreen() {
           style={[styles.barInner, { paddingTop: insets.top, borderBottomColor: theme.colors.border }]}
         >
           <Text style={[styles.navTitle, { color: theme.colors.text }]}>Notes</Text>
-          <Pressable style={styles.navMenuBtn} onPress={openMenu} hitSlop={8}>
+          <Pressable
+            style={styles.navMenuBtn}
+            onPress={openMenu}
+            hitSlop={12}
+            accessibilityLabel="Open options menu"
+            accessibilityRole="button"
+          >
             <Ionicons name="ellipsis-horizontal-circle-outline" size={26} color={theme.colors.text} />
           </Pressable>
         </BlurView>
@@ -326,12 +332,24 @@ export default function NotesScreen() {
           style={[styles.barInner, { paddingTop: insets.top, borderBottomColor: theme.colors.primary + '40' }]}
         >
           {/* Left: cancel */}
-          <Pressable style={styles.actionBarSide} onPress={clearSelection} hitSlop={8}>
+          <Pressable
+            style={styles.actionBarSide}
+            onPress={clearSelection}
+            hitSlop={12}
+            accessibilityLabel="Cancel selection mode"
+            accessibilityRole="button"
+          >
             <Text style={[styles.actionBarCancel, { color: theme.colors.primary }]}>Cancel</Text>
           </Pressable>
 
           {/* Center: count + select all */}
-          <Pressable style={styles.actionBarCenter} onPress={selectAll} hitSlop={8}>
+          <Pressable
+            style={styles.actionBarCenter}
+            onPress={selectAll}
+            hitSlop={12}
+            accessibilityLabel={allSelected ? "Deselect all notes" : "Select all notes"}
+            accessibilityRole="button"
+          >
             <Text style={[styles.actionBarCount, { color: theme.colors.text }]}>
               {selectedNoteIds.size} selected
             </Text>
@@ -346,7 +364,9 @@ export default function NotesScreen() {
             <Pressable
               style={({ pressed }) => [styles.actionBarIconBtn, { opacity: pressed ? 0.6 : 1 }]}
               onPress={archiveSelected}
-              hitSlop={8}
+              hitSlop={12}
+              accessibilityLabel="Archive selected notes"
+              accessibilityRole="button"
             >
               <Ionicons name="archive-outline" size={22} color={theme.colors.textSecondary} />
             </Pressable>
@@ -354,7 +374,9 @@ export default function NotesScreen() {
             <Pressable
               style={({ pressed }) => [styles.actionBarIconBtn, { opacity: pressed ? 0.6 : 1 }]}
               onPress={deleteSelected}
-              hitSlop={8}
+              hitSlop={12}
+              accessibilityLabel="Move selected notes to trash"
+              accessibilityRole="button"
             >
               <Ionicons name="trash-outline" size={22} color={theme.colors.error} />
             </Pressable>
@@ -428,7 +450,7 @@ export default function NotesScreen() {
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pinnedRow}>
               {pinnedNotes.map((note) => (
-                <View key={note.id} style={{ width: 200, marginRight: spacing.md }}>
+                <View key={note.id} style={{ width: SCREEN_WIDTH * 0.72, marginRight: spacing.md }}>
                   {renderCard(note)}
                 </View>
               ))}
@@ -465,6 +487,8 @@ export default function NotesScreen() {
         <View style={[styles.fabContainer, { bottom: insets.bottom + spacing.lg }]}>
           <Pressable
             onPress={createNote}
+            accessibilityLabel="Create new note"
+            accessibilityRole="button"
             style={({ pressed }) => [
               styles.fab,
               { backgroundColor: theme.colors.primary, opacity: pressed ? 0.88 : 1, shadowColor: theme.colors.primary },

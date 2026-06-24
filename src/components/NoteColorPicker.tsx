@@ -1,18 +1,8 @@
 import { ScrollView, StyleSheet, Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeProvider';
-import { spacing, radius } from '../theme/tokens';
-
-const NOTE_COLORS = [
-  'transparent',
-  '#fecaca', // red
-  '#fed7aa', // orange
-  '#fef08a', // yellow
-  '#bbf7d0', // green
-  '#bfdbfe', // blue
-  '#e9d5ff', // purple
-  '#fbcfe8', // pink
-];
+import { spacing } from '../theme/tokens';
+import { noteColors } from '../theme/tokens';
 
 export function NoteColorPicker({
   selectedColor,
@@ -30,28 +20,38 @@ export function NoteColorPicker({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {NOTE_COLORS.map((color) => {
-          const isSelected = selectedColor === color;
+        {noteColors.map((colorItem) => {
+          const isDefault = colorItem.name === 'Default';
+          const colorHex = isDark ? colorItem.dark : colorItem.light;
+          const isSelected =
+            selectedColor === colorItem.name ||
+            selectedColor === colorItem.light ||
+            selectedColor === colorItem.dark ||
+            (isDefault && (selectedColor === 'transparent' || selectedColor === '#FFFFFF'));
+
           return (
             <Pressable
-              key={color}
-              onPress={() => onSelectColor(color)}
+              key={colorItem.name}
+              onPress={() => onSelectColor(isDefault ? 'transparent' : colorItem.light)}
+              accessibilityLabel={`Select ${colorItem.name} color`}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isSelected }}
               style={[
                 styles.colorCircle,
                 {
-                  backgroundColor: color === 'transparent' ? theme.colors.card : color,
+                  backgroundColor: isDefault ? theme.colors.card : colorHex,
                   borderColor: isSelected ? theme.colors.primary : theme.colors.border,
                 },
               ]}
             >
-              {color === 'transparent' && !isSelected && (
-                <Ionicons name="color-palette-outline" size={16} color={theme.colors.textTertiary} />
+              {isDefault && !isSelected && (
+                <Ionicons name="color-palette-outline" size={18} color={theme.colors.textTertiary} />
               )}
               {isSelected && (
                 <Ionicons
                   name="checkmark"
-                  size={16}
-                  color={color === 'transparent' ? theme.colors.primary : '#000'}
+                  size={18}
+                  color={isDefault || isDark ? theme.colors.primary : '#1A1A1A'}
                 />
               )}
             </Pressable>
@@ -64,20 +64,21 @@ export function NoteColorPicker({
 
 const styles = StyleSheet.create({
   container: {
-    height: 60,
+    height: 68,
     justifyContent: 'center',
   },
   scrollContent: {
     paddingHorizontal: spacing.xl,
-    gap: spacing.sm,
+    gap: spacing.md,
     alignItems: 'center',
   },
   colorCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
 });
+

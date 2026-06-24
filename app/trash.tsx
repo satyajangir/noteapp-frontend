@@ -215,7 +215,13 @@ export default function TrashScreen() {
           tint={isDark ? 'dark' : 'light'}
           style={[styles.barInner, { paddingTop: insets.top, borderBottomColor: theme.colors.border }]}
         >
-          <Pressable style={styles.backBtn} onPress={() => { playSound('click'); router.back(); }} hitSlop={8}>
+          <Pressable
+            style={styles.backBtn}
+            onPress={() => { playSound('click'); router.back(); }}
+            hitSlop={12}
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
+          >
             <Ionicons name="chevron-back" size={26} color={theme.colors.primary} />
           </Pressable>
 
@@ -226,6 +232,8 @@ export default function TrashScreen() {
             style={styles.navActionBtn}
             onPress={handleEmptyTrash}
             disabled={deletedNotes.length === 0}
+            accessibilityLabel="Empty trash permanently"
+            accessibilityRole="button"
           >
             <Text
               style={[
@@ -259,12 +267,24 @@ export default function TrashScreen() {
           ]}
         >
           {/* Left — Cancel */}
-          <Pressable style={styles.actionBarSide} onPress={clearSelection} hitSlop={8}>
+          <Pressable
+            style={styles.actionBarSide}
+            onPress={clearSelection}
+            hitSlop={12}
+            accessibilityLabel="Cancel selection mode"
+            accessibilityRole="button"
+          >
             <Text style={[styles.actionBarCancel, { color: theme.colors.primary }]}>Cancel</Text>
           </Pressable>
 
           {/* Center — count + Select All */}
-          <Pressable style={styles.actionBarCenter} onPress={selectAll} hitSlop={8}>
+          <Pressable
+            style={styles.actionBarCenter}
+            onPress={selectAll}
+            hitSlop={12}
+            accessibilityLabel={allSelected ? "Deselect all notes" : "Select all notes"}
+            accessibilityRole="button"
+          >
             <Text style={[styles.actionBarCount, { color: theme.colors.text }]}>
               {selectedNoteIds.size} selected
             </Text>
@@ -278,14 +298,18 @@ export default function TrashScreen() {
             <Pressable
               style={({ pressed }) => [styles.actionBarIconBtn, { opacity: pressed ? 0.6 : 1 }]}
               onPress={handleRestoreSelected}
-              hitSlop={8}
+              hitSlop={12}
+              accessibilityLabel="Restore selected notes"
+              accessibilityRole="button"
             >
               <Ionicons name="arrow-undo-outline" size={22} color={theme.colors.primary} />
             </Pressable>
             <Pressable
               style={({ pressed }) => [styles.actionBarIconBtn, { opacity: pressed ? 0.6 : 1 }]}
               onPress={handleHardDeleteSelected}
-              hitSlop={8}
+              hitSlop={12}
+              accessibilityLabel="Permanently delete selected notes"
+              accessibilityRole="button"
             >
               <Ionicons name="trash-bin-outline" size={22} color={theme.colors.error} />
             </Pressable>

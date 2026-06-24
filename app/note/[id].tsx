@@ -22,7 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 
 import { useTheme } from '../../src/theme/ThemeProvider';
-import { spacing, radius, typography } from '../../src/theme/tokens';
+import { spacing, radius, typography, getNoteTheme } from '../../src/theme/tokens';
 import { useNotesStore } from '../../src/stores/notes-store';
 import { useAuthStore } from '../../src/stores/auth-store';
 import { NoteColorPicker } from '../../src/components/NoteColorPicker';
@@ -73,7 +73,7 @@ export default function NoteEditorScreen() {
       ) {
         // Automatically move note to trash if it is left empty (both title and content clear)
         const now = new Date().toISOString();
-        playSound('delete');
+        // Silent discard — no delete sound played
         updateNoteField(id, 'deleted_at', now).catch(e => console.error('Failed to auto-delete note:', e));
         useNotesStore.getState().removeNote(id);
       }
@@ -219,7 +219,11 @@ export default function NoteEditorScreen() {
 
   const handleBack = () => {
     playSound('click');
-    router.back();
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)');
+    }
   };
 
   const openNoteOptions = () => {
@@ -247,12 +251,12 @@ export default function NoteEditorScreen() {
     );
   }
 
-  const isDefaultColor = !color || color === 'transparent' || color === '#FFFFFF';
-  const bgColor = isDefaultColor ? theme.colors.background : color;
-  const textColor = isDefaultColor ? theme.colors.text : '#1a1a1a';
-  const placeholderColor = isDefaultColor ? theme.colors.textTertiary : '#6b7280';
-  const metaColor = isDefaultColor ? theme.colors.textSecondary : '#4b5563';
-  const separatorColor = isDefaultColor ? theme.colors.border : 'rgba(0,0,0,0.08)';
+  const noteTheme = getNoteTheme(color, isDark, theme);
+  const bgColor = noteTheme.background;
+  const textColor = noteTheme.text;
+  const placeholderColor = noteTheme.textTertiary;
+  const metaColor = noteTheme.textSecondary;
+  const separatorColor = noteTheme.border;
   const headerHeight = insets.top + 56;
 
   return (
@@ -265,7 +269,13 @@ export default function NoteEditorScreen() {
         style={[styles.header, { paddingTop: insets.top, height: headerHeight }]}
       >
         {/* Back */}
-        <Pressable style={styles.backBtn} onPress={handleBack} hitSlop={8}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={handleBack}
+          hitSlop={12}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Ionicons name="chevron-back" size={26} color={textColor} />
         </Pressable>
 
@@ -284,7 +294,10 @@ export default function NoteEditorScreen() {
           <Pressable
             style={styles.headerBtn}
             onPress={() => setIsEditing(!isEditing)}
-            hitSlop={8}
+            hitSlop={12}
+            accessibilityLabel={isEditing ? "Switch to preview mode" : "Switch to editing mode"}
+            accessibilityRole="button"
+            accessibilityState={{ checked: isEditing }}
           >
             <Ionicons
               name={isEditing ? 'eye-outline' : 'pencil-outline'}
@@ -292,7 +305,13 @@ export default function NoteEditorScreen() {
               color={textColor}
             />
           </Pressable>
-          <Pressable style={styles.headerBtn} onPress={openNoteOptions} hitSlop={8}>
+          <Pressable
+            style={styles.headerBtn}
+            onPress={openNoteOptions}
+            hitSlop={12}
+            accessibilityLabel="Note options"
+            accessibilityRole="button"
+          >
             <Ionicons name="ellipsis-horizontal" size={21} color={textColor} />
           </Pressable>
         </View>
